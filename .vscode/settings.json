@@ -1,3 +1,6 @@
 {
-    "cmake.sourceDirectory": "C:/Users/gusta/OneDrive/Documentos/Trabalho2_PBN/SDL2/test"
+    "cmake.sourceDirectory": "C:/Users/gusta/OneDrive/Documentos/Trabalho2_PBN/SDL2/test",
+    "files.associations": {
+        "stdbool.h": "c"
+    }
 }

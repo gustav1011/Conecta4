@@ -12,9 +12,10 @@
 int tabuleiroAux[6][7] = {0}; // Tabuleiro auxiliar para registrar posições ocupadas
 int seleciona_ficha = 0; // Inicialmente, nenhuma ficha está selecionada
 int posicaoX;
-int posicaoY = 50; // Posição inicial da peça
+int posicaoY = 50; // Posição inicial da peça, da onde a peça vai cair do eixo Y
 
-void escolhaColuna(int coluna) {
+
+void escolhaColuna(int coluna) {// escolha da coluna da onde vai cair a peça
     // Define apenas a posição X com base na coluna selecionada
     switch (coluna) {
         case 0: posicaoX = 275; break;
@@ -69,10 +70,11 @@ int main(int argc, char** argv) {
     scanf("%d", &escolhacol);
     escolhaColuna(escolhacol); // Atualiza posicaoX e posicaoY
 
-    SDL_Event event;
+     SDL_Event event;
     int running = 1;
+    int numeroJogadas;
+    while (running && numeroJogadas >= 41) {
 
-    while (running) {
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) {
                 running = 0;
@@ -97,15 +99,15 @@ int main(int argc, char** argv) {
         }
 
         // Move a peça para baixo
-        if (posicaoY < 850) {  // Limite inferior para parar a descida
-            posicaoY += 1;  // Incrementa a velocidade de descida
+        if (posicaoY < 600) {  // Limite inferior para parar a descida
+            posicaoY += 3.5;  // Incrementa a velocidade de descida
         } else {
             // Chegou no limite do tabuleiro, então pare a descida
             int linhaDisponivel = getLinhaDisponivel(escolhacol); // Verifica a linha disponível
             if (linhaDisponivel != -1 && seleciona_ficha != 0) {
                 tabuleiroAux[linhaDisponivel][escolhacol] = seleciona_ficha; // Armazena no tabuleiro
-                posicaoY = 50;  // Reinicia a posição Y para nova peça
-                seleciona_ficha = 0; // Reseta a seleção de ficha
+                //posicaoY = 50;  // Reinicia a posição Y para nova peça
+                //seleciona_ficha = 0; // Reseta a seleção de ficha
             }
         }
 
@@ -129,10 +131,13 @@ int main(int argc, char** argv) {
             SDL_RenderCopy(renderer, ficha_amarela, NULL, &posicao_inicial);
         }
 
+
         SDL_RenderPresent(renderer);
         SDL_Delay(20); // Delay para controlar a taxa de atualização
+    
     }
 
+    
     // Libera recursos
     SDL_DestroyTexture(tabuleiro);
     SDL_DestroyTexture(ficha_vermelha);
