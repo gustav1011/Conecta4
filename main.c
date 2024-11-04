@@ -4,19 +4,199 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-////usar uma var global do tipo array bidimensional para referenciar as coordenadas do array que ja estão locadas
-// LEEGNDA: (0 = posição livre, 1 = peça vermelha, 2 = peça amarela).
-//int legendaDisponivel = 0;
-//int legendaVermelha = 1;
-//int legendaAmae = 2;
+// Declaração das funções
+int jogada(SDL_Renderer* renderer, SDL_Texture* tabuleiro, SDL_Texture* ficha_vermelha, SDL_Texture* ficha_amarela, SDL_Rect quad1);
+//void renderizarTabuleiro(SDL_Renderer* renderer, SDL_Texture* tabuleiro, SDL_Texture* ficha_vermelha, SDL_Texture* ficha_amarela, SDL_Rect quad1);
+void reiniciarTabuleiro(); 
+void iniciartabuleiroaux();
+void escolhaColuna(int coluna);
+int getColunaDisponivel(int coluna);
+void PrintarTabelaux();
+
+
+// Variáveis globais para o tabuleiro e o controle de posição
+int jogadorAtual = 1; 
 int tabuleiroAux[6][7] = {0}; // Tabuleiro auxiliar para registrar posições ocupadas
-int seleciona_ficha = 0; // Inicialmente, nenhuma ficha está selecionada
-int posicaoX;
-int posicaoY = 50; // Posição inicial da peça, da onde a peça vai cair do eixo Y
+int seleciona_ficha = 0; // Armazena qual ficha (vermelha ou amarela) está selecionada
+int posicaoX; // Posição X da peça selecionada
+int posicaoY = 50; // Posição Y inicial da peça
+int escolhacol; // Coluna escolhida pelo jogador
+int numeroJogadas = 0; // Contador de jogadas
+
+////////////////////////////////////////////////////// INICIO DO MAIN ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int main(int argc, char** argv) {
+    SDL_Init(SDL_INIT_EVERYTHING); // Inicializa a biblioteca SDL
+    SDL_Window* window = SDL_CreateWindow(
+        "Conecta 4", // Nome da janela
+        100, 100,    // Posição da janela
+        1500, 1024,  // Tamanho da janela
+        SDL_WINDOW_SHOWN // Define a janela como visível
+    );
+    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 0); // Cria um renderizador
+    SDL_Texture* tabuleiro = IMG_LoadTexture(renderer, "jogo_tabuleiro.png"); // Carrega a textura do tabuleiro
+    SDL_Texture* ficha_vermelha = IMG_LoadTexture(renderer, "ficha_vermelha.png"); // Carrega a textura da ficha vermelha
+    SDL_Texture* ficha_amarela = IMG_LoadTexture(renderer, "ficha_amarela.png"); // Carrega a textura da ficha amarela
+
+    SDL_Rect quad1 = { 200, 150, 1108, 887 }; // Define as dimensões do tabuleiro na tela
+
+    SDL_RenderClear(renderer); // Limpa a tela
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); // Define a cor de fundo para branco
+
+    printf("Bem Vindo ao Conecta 4 \n");
+    printf("Escolha um Modo de Jogo:\n");
+    printf("Digite:\n 1 para jogador x jogador\n  2 para jogador x máquina:\n "); // implementar essa parte ainda
+
+    iniciartabuleiroaux(); // inicia o tabuleiro aux com todos valores setados para 0
+    PrintarTabelaux();
+
+    ///////////////////////////// JOGADA /////////////////////////////
+    while (numeroJogadas < 2) { // Permite até 42 jogadas (número máximo de peças no tabuleiro)
+
+        printf("Escolha a coluna que você quer jogar (0 a 6):\n");
+        scanf("%d", &escolhacol); // Usuário escolhe uma coluna
+
+        if (escolhacol >= 0 && escolhacol < 7) { // Verifica se a coluna da onde a peça cairá é válida
+            escolhaColuna(escolhacol); // Define a posição X com base na coluna
+            jogada(renderer, tabuleiro, ficha_vermelha, ficha_amarela, quad1); // Chama a função de jogada
+            PrintarTabelaux();
+            // Verifica se a jogada foi bem-sucedida
+            int linhaDisponivel = getColunaDisponivel(escolhacol);
+            if (linhaDisponivel != -1) {
+                tabuleiroAux[linhaDisponivel][escolhacol] = seleciona_ficha; // Adiciona a ficha na posição
+                numeroJogadas++; // Incrementa o contador de jogadas somente se a jogada for válida
+            } else {
+                printf("Coluna cheia, tente novamente!\n");
+            }
+        } else {
+            printf("Coluna inválida. Escolha uma coluna entre 0 e 6.\n");
+        }
+    }
+
+    // Aqui,pode adicionar um aviso de fim de jogo
+    printf("Jogo terminado! Total de jogadas: %d\n", numeroJogadas);
+
+    printf("DESEJA REINICIAR O JOGO? (1 para Sim, 0 para Não)\n");
+    int reiniciar;
+    scanf("%d", &reiniciar);
+    if (reiniciar == 1) {
+        reiniciarTabuleiro(); // Reinicia o tabuleiro se o jogador escolher
+    }
+
+    // Limpeza dos recursos, liberando memória para o final do programa
+    SDL_DestroyTexture(tabuleiro);
+    SDL_DestroyTexture(ficha_vermelha);
+    SDL_DestroyTexture(ficha_amarela);
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    SDL_Quit(); // Finaliza a SDL
+    return 0;
+}
+////////////////////////////////////////////////////// FIM DO MAIN ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-void escolhaColuna(int coluna) {// escolha da coluna da onde vai cair a peça
-    // Define apenas a posição X com base na coluna selecionada
+////////////////////////// MÉTODO DA JOGADA ////////////////////////////////////////////
+int jogada(SDL_Renderer* renderer, SDL_Texture* tabuleiro, SDL_Texture* ficha_vermelha, SDL_Texture* ficha_amarela, SDL_Rect quad1) {
+    SDL_Event event; // Armazena os eventos SDL
+    int running = 1; // Variável para controle do loop
+    posicaoY = 50; // Posição inicial de descida
+    seleciona_ficha = 0; // Zera a seleção da ficha
+    int fichaCaiu = 0; // Flag para verificar se a ficha caiu
+
+    // Aguarda a seleção da ficha
+    while (running && !fichaCaiu) {
+        while (SDL_PollEvent(&event)) { // Processa eventos
+            if (event.type == SDL_QUIT) { // Evento de saída
+                running = 0;
+            } else if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
+                // Evento de clique do mouse
+                int mouse_x = event.button.x;
+                int mouse_y = event.button.y;
+
+                printf("A coord_x é: %d\n", mouse_x); // Mostra a posição X do clique
+                printf("A coord_y é: %d\n", mouse_y); // Mostra a posição Y do clique
+
+                // Verifica onde o usuário clicou para selecionar a ficha
+                if (mouse_x > 100 && mouse_x < 232 && mouse_y > 200 && mouse_y < 332) {
+                    seleciona_ficha = 1; // Seleciona a ficha vermelha
+                    printf("ficha vermelha\n");
+                } else if (mouse_x > 100 && mouse_x < 232 && mouse_y > 400 && mouse_y < 532) {
+                    seleciona_ficha = 2; // Seleciona a ficha amarela
+                    printf("ficha amarela\n");
+                }
+            }
+        }
+
+        if (seleciona_ficha != 0) {
+            // Continua a animação da descida
+            if (posicaoY < 600) {
+                posicaoY += 3.5; // Incrementa a posição Y (fazendo a peça descer)
+            } else {
+                fichaCaiu = 1; // Marca que a ficha caiu
+            }
+        }
+       // renderizarTabuleiro(renderer, tabuleiro, ficha_vermelha, ficha_amarela, quad1); // Renderiza o tabuleiro
+              SDL_RenderClear(renderer); // Limpa a tela para novo desenho
+        SDL_RenderCopy(renderer, tabuleiro, NULL, &quad1); // Desenha o tabuleiro na tela
+
+        // Exibe as fichas disponíveis
+        SDL_Rect local_vermelha = { 100, 200, 132, 132 }; // Define a área para exibir a ficha vermelha
+        SDL_RenderCopy(renderer, ficha_vermelha, NULL, &local_vermelha);
+        SDL_Rect local_amarela = { 100, 400, 132, 132 }; // Define a área para exibir a ficha amarela
+        SDL_RenderCopy(renderer, ficha_amarela, NULL, &local_amarela);
+
+        // Exibe a ficha que está caindo
+        if (seleciona_ficha == 1) {
+            SDL_Rect fichaCaindo = { posicaoX, posicaoY, 132, 132 }; // Define a posição da ficha vermelha que está caindo
+            SDL_RenderCopy(renderer, ficha_vermelha, NULL, &fichaCaindo);
+        } else if (seleciona_ficha == 2) {
+            SDL_Rect fichaCaindo = { posicaoX, posicaoY, 132, 132 }; // Define a posição da ficha amarela que está caindo
+            SDL_RenderCopy(renderer, ficha_amarela, NULL, &fichaCaindo);
+        }
+
+        SDL_RenderPresent(renderer); // Atualiza a tela com o novo desenho
+        SDL_Delay(10); // Delay para controlar a velocidade da animação
+    }
+
+    /*
+        renderizarTabuleiro(renderer, tabuleiro, ficha_vermelha, ficha_amarela, quad1); // Renderiza o tabuleiro
+        SDL_RenderPresent(renderer); // Apresenta o renderizador
+    }
+    // Adiciona a ficha no tabuleiro (na posição final)
+    if (seleciona_ficha == 1) {
+        SDL_Rect fichaRect = {posicaoX, posicaoY, 150, 150}; // Define a posição e o tamanho da ficha vermelha
+        SDL_RenderCopy(renderer, ficha_vermelha, NULL, &fichaRect); // Desenha a ficha vermelha
+    } else if (seleciona_ficha == 2) {
+        SDL_Rect fichaRect = {posicaoX, posicaoY, 150, 150}; // Define a posição e o tamanho da ficha amarela
+        SDL_RenderCopy(renderer, ficha_amarela, NULL, &fichaRect); // Desenha a ficha amarela
+    }
+}*/
+
+    return 0; // Retorna 0 para indicar que a função foi bem-sucedida
+}
+
+////////////////////////// FUNÇÃO RENDERIZAR TABELA //////////////////////////////
+/*
+void renderizarTabuleiro(SDL_Renderer* renderer, SDL_Texture* tabuleiro, SDL_Texture* ficha_vermelha, SDL_Texture* ficha_amarela, SDL_Rect quad1) {
+    SDL_RenderClear(renderer); // Limpa a tela
+    SDL_RenderCopy(renderer, tabuleiro, NULL, &quad1); // Desenha o tabuleiro
+    // Desenha as fichas existentes no tabuleiro
+    for (int i = 0; i < 6; i++) {
+        for (int j = 0; j < 7; j++) {
+            if (tabuleiroAux[i][j] == 1) { // Se a posição contém ficha vermelha
+                SDL_Rect fichaRect = {j * 134 + 275, i * 134 + 150, 150, 150}; // Calcula a posição da ficha
+                SDL_RenderCopy(renderer, ficha_vermelha, NULL, &fichaRect); // Desenha a ficha vermelha
+            } else if (tabuleiroAux[i][j] == 2) { // Se a posição contém ficha amarela
+                SDL_Rect fichaRect = {j * 134 + 275, i * 134 + 150, 150, 150}; // Calcula a posição da ficha
+                SDL_RenderCopy(renderer, ficha_amarela, NULL, &fichaRect); // Desenha a ficha amarela
+            }
+        }
+    }
+    SDL_RenderPresent(renderer); // Atualiza a tela
+}
+*/
+
+// Define a posição X com base na coluna selecionada
+void escolhaColuna(int coluna) { 
     switch (coluna) {
         case 0: posicaoX = 275; break;
         case 1: posicaoX = 409; break;
@@ -29,121 +209,41 @@ void escolhaColuna(int coluna) {// escolha da coluna da onde vai cair a peça
     }
 }
 
-int getLinhaDisponivel(int coluna) {// verifica apenas no tabu aux
-    for (int linha = 5; linha >= 0; linha--) { // Verifica de baixo para cima
-        if (tabuleiroAux[linha][coluna] == 0) {
-            return linha; // Retorna a linha disponível
+// Verifica a coluna disponível na linha especificada
+int getColunaDisponivel(int coluna) { 
+    for (int linha = 5; linha >= 0; linha--) { // Começa da última linha (parte inferior)
+        if (tabuleiroAux[linha][coluna] == 0) { // Verifica se a posição está vazia
+            return linha; // Retorna a primeira linha disponível
         }
-    }
-    return -1; // Retorna -1 se a coluna estiver cheia
+    } return -1; // Retorna -1 se a coluna estiver cheia
 }
 
-int main(int argc, char** argv) {
-    SDL_Init(SDL_INIT_EVERYTHING);
-    SDL_Window* window = SDL_CreateWindow(
-        "Conect Four",
-        100, 100,
-        1500, 1024,
-        SDL_WINDOW_SHOWN
-    );
-    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 0);
-    SDL_Texture* tabuleiro = IMG_LoadTexture(renderer, "jogo_tabuleiro.png");
-    SDL_Texture* ficha_vermelha = IMG_LoadTexture(renderer, "ficha_vermelha.png");
-    SDL_Texture* ficha_amarela = IMG_LoadTexture(renderer, "ficha_amarela.png");
-    SDL_Rect quad1;
-    quad1.x = 200;
-    quad1.y = 150;
-    quad1.w = 1108;
-    quad1.h = 887;
-    SDL_RenderClear(renderer);
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);// RENDERIZAÇÃO DA TABELA!!!!!!!!!!!
-
-    ///////////////////////////////////JOGO EM AÇÃO////////////////////////////////////////////////////////////////////////////////////
-
-    // Parte de interação com o usuário
-    printf("Bem Vindo ao Conecta 4 \n");
-    printf("Escolha um Modo de Jogo:\n");
-    printf("Digite:\n 1 para jogador x jogador\n  2 para jogador x máquina:\n "); // a fazer
-
-    printf("Escolha a coluna que você quer jogar (0 a 6):\n");
-    int escolhacol;
-    scanf("%d", &escolhacol);
-    escolhaColuna(escolhacol); // Atualiza posicaoX e posicaoY
-
-     SDL_Event event;
-    int running = 1;
-    int numeroJogadas;
-    while (running && numeroJogadas >= 41) {
-
-        while (SDL_PollEvent(&event)) {
-            if (event.type == SDL_QUIT) {
-                running = 0;
-            } else if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
-                int mouse_x = event.button.x;
-                int mouse_y = event.button.y;
-
-                printf("A coord_x eh: %d\n", mouse_x);
-                printf("A coord_y eh: %d\n", mouse_y);
-
-                // Verifica qual ficha foi selecionada
-                if (mouse_x > 100 && mouse_x < 232 && mouse_y > 200 && mouse_y < 332) {
-                    seleciona_ficha = 1; // ficha VERMELHA
-                    printf("ficha vermelha\n");
-                    posicaoY = 50; // Reseta a posição Y para começar a descida
-                } else if (mouse_x > 100 && mouse_x < 232 && mouse_y > 400 && mouse_y < 532) {
-                    seleciona_ficha = 2; // ficha AMARELA
-                    printf("ficha amarela\n");
-                    posicaoY = 50; // Reseta a posição Y para começar a descida
-                }
-            }
+// Reinicia o tabuleiro
+void reiniciarTabuleiro() {
+    for (int i = 0; i < 6; i++) {
+        for (int j = 0; j < 7; j++) {
+            tabuleiroAux[i][j] = 0; // Reseta o tabuleiro
         }
-
-        // Move a peça para baixo
-        if (posicaoY < 600) {  // Limite inferior para parar a descida
-            posicaoY += 3.5;  // Incrementa a velocidade de descida
-        } else {
-            // Chegou no limite do tabuleiro, então pare a descida
-            int linhaDisponivel = getLinhaDisponivel(escolhacol); // Verifica a linha disponível
-            if (linhaDisponivel != -1 && seleciona_ficha != 0) {
-                tabuleiroAux[linhaDisponivel][escolhacol] = seleciona_ficha; // Armazena no tabuleiro
-                //posicaoY = 50;  // Reinicia a posição Y para nova peça
-                //seleciona_ficha = 0; // Reseta a seleção de ficha
-            }
-        }
-
-        // Renderiza o tabuleiro e as fichas
-        SDL_RenderClear(renderer);
-        SDL_RenderCopy(renderer, tabuleiro, NULL, &quad1);
-
-        // Desenha as fichas disponíveis
-        SDL_Rect local_vermelha = { 100, 200, 132, 132 };
-        SDL_RenderCopy(renderer, ficha_vermelha, NULL, &local_vermelha);
-
-        SDL_Rect local_amarela = { 100, 400, 132, 132 };
-        SDL_RenderCopy(renderer, ficha_amarela, NULL, &local_amarela);
-
-        // Renderiza a ficha selecionada se houver
-        if (seleciona_ficha == 1) {
-            SDL_Rect posicao_inicial = { posicaoX, posicaoY, 132, 132 };
-            SDL_RenderCopy(renderer, ficha_vermelha, NULL, &posicao_inicial);
-        } else if (seleciona_ficha == 2) {
-            SDL_Rect posicao_inicial = { posicaoX, posicaoY, 132, 132 };
-            SDL_RenderCopy(renderer, ficha_amarela, NULL, &posicao_inicial);
-        }
-
-
-        SDL_RenderPresent(renderer);
-        SDL_Delay(20); // Delay para controlar a taxa de atualização
-    
     }
+    numeroJogadas = 0; // Reinicia o contador de jogadas
+    printf("Tabuleiro reiniciado!\n");
+}
 
-    
-    // Libera recursos
-    SDL_DestroyTexture(tabuleiro);
-    SDL_DestroyTexture(ficha_vermelha);
-    SDL_DestroyTexture(ficha_amarela);
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
-    SDL_Quit();
-    return 0;
+// Inicializa o tabuleiro auxiliar
+void iniciartabuleiroaux() {
+    for (int i = 0; i < 6; i++) {
+        for (int j = 0; j < 7; j++) {
+            tabuleiroAux[i][j] = 0; // Define todas as posições como vazias
+        }
+    }
+}
+
+// Função para imprimir o tabuleiro auxiliar
+void PrintarTabelaux() {
+    for (int i = 0; i < 6; i++) {
+        for (int j = 0; j < 7; j++) {
+            printf("%d ", tabuleiroAux[i][j]); // Imprime o valor do tabuleiro auxiliar
+        }
+        printf("\n"); // Nova linha após cada linha do tabuleiro
+    }
 }
