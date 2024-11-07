@@ -5,7 +5,7 @@
 #include <stdlib.h>
 
 // Declaração das funções
-int jogada(SDL_Renderer* renderer, SDL_Texture* tabuleiro, SDL_Texture* ficha_vermelha, SDL_Texture* ficha_amarela, SDL_Rect quad1);
+int jogada(SDL_Renderer* renderer, SDL_Texture* tabuleiro, SDL_Texture* ficha_vermelha, SDL_Texture* ficha_amarela,SDL_Texture* ficha_transparente, SDL_Rect quad1);
 //void renderizarTabuleiro(SDL_Renderer* renderer, SDL_Texture* tabuleiro, SDL_Texture* ficha_vermelha, SDL_Texture* ficha_amarela, SDL_Rect quad1);
 void reiniciarTabuleiro(); 
 void iniciartabuleiroaux();
@@ -15,7 +15,7 @@ void PrintarTabelaux();
 bool VerificacaoHorizontal(int tabuleiroAux[6][7]);
 bool VerificacaoVertical(int tabuleiroAux[6][7]);
 bool VerificacaoDiagonalAscendente(int tabuleiroAux[6][7]);
-
+bool VerificacaoDiagonalDescendente(int tabuleiroAux[6][7]);
 
 
 // Variáveis globais para o tabuleiro e o controle de posição
@@ -32,7 +32,7 @@ int main(int argc, char** argv) {
     SDL_Init(SDL_INIT_EVERYTHING); // Inicializa a biblioteca SDL
     SDL_Window* window = SDL_CreateWindow(
         "Conecta 4", // Nome da janela
-        100, 100,    // Posição da janela
+        50, 15,    // Posição da janela
         1500, 1024,  // Tamanho da janela
         SDL_WINDOW_SHOWN // Define a janela como visível
     );
@@ -40,12 +40,15 @@ int main(int argc, char** argv) {
     SDL_Texture* tabuleiro = IMG_LoadTexture(renderer, "jogo_tabuleiro.png"); // Carrega a textura do tabuleiro
     SDL_Texture* ficha_vermelha = IMG_LoadTexture(renderer, "ficha_vermelha.png"); // Carrega a textura da ficha vermelha
     SDL_Texture* ficha_amarela = IMG_LoadTexture(renderer, "ficha_amarela.png"); // Carrega a textura da ficha amarela
+    SDL_Texture* ficha_transparente = IMG_LoadTexture(renderer, "ficha_transparente.png"); // Carrega a textura da ficha amarela
 
-    SDL_Rect quad1 = { 200, 150, 1108, 887 }; // Define as dimensões do tabuleiro na tela
 
-    SDL_RenderClear(renderer); // Limpa a tela
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); // Define a cor de fundo para branco
+    SDL_Rect quad1 = { 200, 20, 1108, 750 }; // Define as dimensões do tabuleiro na tela
 
+   // SDL_RenderClear(renderer); // Limpa a tela
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); // Define a cor de fundo, pode personalizar sabendo dos valores RGB
+   SDL_RenderClear(renderer); // Limpa a tela
+   
     printf("Bem Vindo ao Conecta 4 \n");
     printf("Escolha um Modo de Jogo:\n");
     printf("Digite:\n1 para jogador x jogador\n2 para jogador x máquina:\n "); // implementar essa parte ainda
@@ -61,7 +64,7 @@ while (numeroJogadas < 42) { // Permite até 42 jogadas (número máximo de peç
 
     if (escolhacol >= 0 && escolhacol < 7) {
         escolhaColuna(escolhacol); // Define a posição X com base na coluna
-        jogada(renderer, tabuleiro, ficha_vermelha, ficha_amarela, quad1);
+        jogada(renderer, tabuleiro, ficha_vermelha, ficha_amarela,ficha_transparente, quad1);
 
         // Verifica se a jogada foi bem-sucedida
         int linhaDisponivel = getColunaDisponivel(escolhacol);
@@ -84,6 +87,11 @@ while (numeroJogadas < 42) { // Permite até 42 jogadas (número máximo de peç
             else if(VerificacaoDiagonalAscendente(tabuleiroAux)){
                 printf("Jogador %d venceu com uma sequência Diagonal Ascendente!\n", jogadorAtual);
                 break; // Encerra o loop se houver uma vitória
+            } 
+            // Verifica a condição de vitória Diagonal descendente!!!!!
+            else if(VerificacaoDiagonalDescendente(tabuleiroAux)){
+                printf("Jogador %d venceu com uma sequência Diagonal Descendente!\n", jogadorAtual);
+                break; // Encerra o loop se houver uma vitória    
             }
 
             // Troca de jogador
@@ -108,6 +116,7 @@ printf("Jogo terminado! Total de jogadas: %d\n", numeroJogadas);
     SDL_DestroyTexture(tabuleiro);
     SDL_DestroyTexture(ficha_vermelha);
     SDL_DestroyTexture(ficha_amarela);
+    SDL_DestroyTexture(ficha_transparente);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit(); // Finaliza a SDL
@@ -117,7 +126,7 @@ printf("Jogo terminado! Total de jogadas: %d\n", numeroJogadas);
 
 
 ////////////////////////// MÉTODO DA JOGADA ////////////////////////////////////////////
-int jogada(SDL_Renderer* renderer, SDL_Texture* tabuleiro, SDL_Texture* ficha_vermelha, SDL_Texture* ficha_amarela, SDL_Rect quad1) {
+int jogada(SDL_Renderer* renderer, SDL_Texture* tabuleiro, SDL_Texture* ficha_vermelha, SDL_Texture* ficha_amarela,SDL_Texture* ficha_transparente, SDL_Rect quad1) {
     SDL_Event event; // Armazena os eventos SDL
     int running = 1; // Variável para controle do loop
     posicaoY = 50; // Posição inicial de descida
@@ -150,33 +159,43 @@ int jogada(SDL_Renderer* renderer, SDL_Texture* tabuleiro, SDL_Texture* ficha_ve
 
         if (seleciona_ficha != 0) {
             // Continua a animação da descida
-            if (posicaoY < 600) {
+            if (posicaoY < 600) {// 600(5) ; 490(4) ; 380(3) ; 270(2) ; 160 (1) ; 50(0)
                 posicaoY += 3.5; // Incrementa a posição Y (fazendo a peça descer)
             } else {
                 fichaCaiu = 1; // Marca que a ficha caiu
             }
         }
-       // renderizarTabuleiro(renderer, tabuleiro, ficha_vermelha, ficha_amarela, quad1); // Renderiza o tabuleiro
-        SDL_RenderClear(renderer); // Limpa a tela para novo desenho
+        // renderizarTabuleiro(renderer, tabuleiro, ficha_vermelha, ficha_amarela, quad1); // função para Renderiza o tabuleiro nao estou usando
+        //SDL_RenderClear(renderer); // Limpa a tela para novo desenho
+
         SDL_RenderCopy(renderer, tabuleiro, NULL, &quad1); // Desenha o tabuleiro na tela
 
         // Exibe as fichas disponíveis
         SDL_Rect local_vermelha = { 100, 200, 132, 132 }; // Define a área para exibir a ficha vermelha
         SDL_RenderCopy(renderer, ficha_vermelha, NULL, &local_vermelha);
+
         SDL_Rect local_amarela = { 100, 400, 132, 132 }; // Define a área para exibir a ficha amarela
         SDL_RenderCopy(renderer, ficha_amarela, NULL, &local_amarela);
+
+       SDL_Rect local_transparente = { 100, 400, 132, 132 }; // Define a área para exibir a ficha amarela
+        //SDL_RenderCopy(renderer, ficha_transparente, NULL, &local_amarela);
+        
 
         // Exibe a ficha que está caindo
         if (seleciona_ficha == 1) {
             SDL_Rect fichaCaindo = { posicaoX, posicaoY, 132, 132 }; // Define a posição da ficha vermelha que está caindo
             SDL_RenderCopy(renderer, ficha_vermelha, NULL, &fichaCaindo);
-        } else if (seleciona_ficha == 2) {
-            int posicao = 600;
-            SDL_RenderCopy(renderer, ficha_vermelha, NULL, &local_vermelha);
+            //SDL_RenderCopy(renderer, ficha_transparente, NULL, &fichaCaindo);
+            
 
+        } else if (seleciona_ficha == 2) {
+           // int posicao = 600;
+            //SDL_RenderCopy(renderer, ficha_vermelha, NULL, &local_vermelha);
             SDL_Rect fichaCaindo = { posicaoX, posicaoY, 132, 132 }; // Define a posição da ficha amarela que está caindo
             SDL_RenderCopy(renderer, ficha_amarela, NULL, &fichaCaindo);
+           // SDL_RenderCopy(renderer, ficha_transparente, NULL, &fichaCaindo);
         }
+         //SDL_RenderCopy(renderer, tabuleiro, NULL, &quad1); // Desenha o tabuleiro na tela
 
         SDL_RenderPresent(renderer); // Atualiza a tela com o novo desenho
         SDL_Delay(10); // Delay para controlar a velocidade da animação
@@ -219,6 +238,9 @@ void renderizarTabuleiro(SDL_Renderer* renderer, SDL_Texture* tabuleiro, SDL_Tex
     SDL_RenderPresent(renderer); // Atualiza a tela
 }
 */
+////////////////////////// FUNÇÃO RENDERIZAR TABELA //////////////////////////////
+
+
 
 // Define a posição X com base na coluna selecionada
 void escolhaColuna(int coluna) { 
@@ -267,25 +289,13 @@ void iniciartabuleiroaux() {
 void PrintarTabelaux() {
     for (int i = 0; i < 6; i++) {
         for (int j = 0; j < 7; j++) {
-            printf("%d ", tabuleiroAux[i][j]); // Imprime o valor do tabuleiro auxiliar
+            printf(" %d ", tabuleiroAux[i][j]); // Imprime o valor do tabuleiro auxiliar
         }
         printf("\n"); // Nova linha após cada linha do tabuleiro
     }
 }
 
-/*
-void VerificacaoVertical(){
-    for (int i = 0; i < 6; i++) {
-        for (int j = 0; j < 7; j++) {
-    if(tabuleiroAux[i][j]==seleciona_ficha){
-
-    }
-        }
-    }
-}
-*/
-
-
+////////////////////////////////////////////////// MÉTODOS DE VERIFICAÇÃO DAS VITÓRIAS/////////////////////////////////////////////////////////
 // Verifica se há quatro peças consecutivas na horizontal para um jogador
 bool VerificacaoHorizontal(int tabuleiroAux[6][7]) {
     for (int i = 0; i < 6; i++) { // Percorre cada linha
