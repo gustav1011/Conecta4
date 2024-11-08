@@ -156,7 +156,19 @@ int jogada(SDL_Renderer* renderer, SDL_Texture* tabuleiro, SDL_Texture* ficha_ve
                 }
             }
         }
-
+/*if (seleciona_ficha != 0) {
+    if (tabuleiroAux[5][escolhacol] == 0) posicaoY < 600;
+    else if (tabuleiroAux[4][escolhacol] == 0 && tabuleiroAux[5][escolhacol] == 1) posicaoY < 490;
+    else if (tabuleiroAux[3][escolhacol] == 0 && tabuleiroAux[4][escolhacol] == 1) posicaoY < 380;
+    else if (tabuleiroAux[2][escolhacol] == 0 && tabuleiroAux[3][escolhacol] == 1) posicaoY < 270;
+    else if (tabuleiroAux[1][escolhacol] == 0 && tabuleiroAux[2][escolhacol] == 1) posicaoY < 160;
+    else if (tabuleiroAux[0][escolhacol] == 0 && tabuleiroAux[1][escolhacol] == 1) posicaoY < 50;
+        posicaoY += 3.5; // Incrementa a posição Y (fazendo a peça descer)
+            } else {
+                fichaCaiu = 1; // Marca que a ficha caiu
+            }
+        */
+        
         if (seleciona_ficha != 0) {
             // Continua a animação da descida
             if (posicaoY < 600) {// 600(5) ; 490(4) ; 380(3) ; 270(2) ; 160 (1) ; 50(0)
@@ -165,7 +177,8 @@ int jogada(SDL_Renderer* renderer, SDL_Texture* tabuleiro, SDL_Texture* ficha_ve
                 fichaCaiu = 1; // Marca que a ficha caiu
             }
         }
-        // renderizarTabuleiro(renderer, tabuleiro, ficha_vermelha, ficha_amarela, quad1); // função para Renderiza o tabuleiro nao estou usando
+        
+
         //SDL_RenderClear(renderer); // Limpa a tela para novo desenho
 
         SDL_RenderCopy(renderer, tabuleiro, NULL, &quad1); // Desenha o tabuleiro na tela
