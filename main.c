@@ -23,9 +23,12 @@ int jogadorAtual = 1;
 int tabuleiroAux[6][7] = {0}; // Tabuleiro auxiliar para registrar posições ocupadas
 int seleciona_ficha ; // Armazena qual ficha (vermelha ou amarela) está selecionada
 int posicaoX; // Posição X da peça selecionada
-int posicaoY = 50; // Posição Y inicial da peça
+//int posicaoY = 50; // Posição Y inicial da peça
 int escolhacol; // Coluna escolhida pelo jogador
 int numeroJogadas = 0; // Contador de jogadas
+float posicaoY = 0;
+float pos_antY = 0;
+
 
 ////////////////////////////////////////////////////// INICIO DO MAIN ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int main(int argc, char** argv) {
@@ -129,9 +132,12 @@ printf("Jogo terminado! Total de jogadas: %d\n", numeroJogadas);
 int jogada(SDL_Renderer* renderer, SDL_Texture* tabuleiro, SDL_Texture* ficha_vermelha, SDL_Texture* ficha_amarela,SDL_Texture* ficha_transparente, SDL_Rect quad1) {
     SDL_Event event; // Armazena os eventos SDL
     int running = 1; // Variável para controle do loop
-    posicaoY = 50; // Posição inicial de descida
+    //posicaoY = 50; // Posição inicial de descida
     seleciona_ficha = 0; // Zera a seleção da ficha
     int fichaCaiu = 0; // Flag para verificar se a ficha caiu
+
+    const int posicaoY_inicial = 50; // Defina a posição inicial de Y para reiniciar a cada rodada
+    posicaoY = posicaoY_inicial; // Inicializa a posição Y com o valor inicial
 
     // Aguarda a seleção da ficha
     while (running && !fichaCaiu) {
@@ -173,86 +179,49 @@ int jogada(SDL_Renderer* renderer, SDL_Texture* tabuleiro, SDL_Texture* ficha_ve
             // Continua a animação da descida
             if (posicaoY < 600) {// 600(5) ; 490(4) ; 380(3) ; 270(2) ; 160 (1) ; 50(0)
                 posicaoY += 3.5; // Incrementa a posição Y (fazendo a peça descer)
+                pos_antY = posicaoY;
             } else {
                 fichaCaiu = 1; // Marca que a ficha caiu
             }
+       
         }
-        
 
         //SDL_RenderClear(renderer); // Limpa a tela para novo desenho
-
-        SDL_RenderCopy(renderer, tabuleiro, NULL, &quad1); // Desenha o tabuleiro na tela
-
-        // Exibe as fichas disponíveis
-        SDL_Rect local_vermelha = { 100, 200, 132, 132 }; // Define a área para exibir a ficha vermelha
-        SDL_RenderCopy(renderer, ficha_vermelha, NULL, &local_vermelha);
-
-        SDL_Rect local_amarela = { 100, 400, 132, 132 }; // Define a área para exibir a ficha amarela
-        SDL_RenderCopy(renderer, ficha_amarela, NULL, &local_amarela);
-
-       SDL_Rect local_transparente = { 100, 400, 132, 132 }; // Define a área para exibir a ficha amarela
-        //SDL_RenderCopy(renderer, ficha_transparente, NULL, &local_amarela);
         
 
-        // Exibe a ficha que está caindo
-        if (seleciona_ficha == 1) {
-            SDL_Rect fichaCaindo = { posicaoX, posicaoY, 132, 132 }; // Define a posição da ficha vermelha que está caindo
-            SDL_RenderCopy(renderer, ficha_vermelha, NULL, &fichaCaindo);
-            //SDL_RenderCopy(renderer, ficha_transparente, NULL, &fichaCaindo);
-            
+    // Renderiza as fichas disponíveis
+    SDL_Rect local_vermelha = { 100, 200, 132, 132 };
+    SDL_RenderCopy(renderer, ficha_vermelha, NULL, &local_vermelha);
 
-        } else if (seleciona_ficha == 2) {
-           // int posicao = 600;
-            //SDL_RenderCopy(renderer, ficha_vermelha, NULL, &local_vermelha);
-            SDL_Rect fichaCaindo = { posicaoX, posicaoY, 132, 132 }; // Define a posição da ficha amarela que está caindo
-            SDL_RenderCopy(renderer, ficha_amarela, NULL, &fichaCaindo);
-           // SDL_RenderCopy(renderer, ficha_transparente, NULL, &fichaCaindo);
-        }
-         //SDL_RenderCopy(renderer, tabuleiro, NULL, &quad1); // Desenha o tabuleiro na tela
+    SDL_Rect local_amarela = { 100, 400, 132, 132 };
+    SDL_RenderCopy(renderer, ficha_amarela, NULL, &local_amarela);
 
-        SDL_RenderPresent(renderer); // Atualiza a tela com o novo desenho
-        SDL_Delay(10); // Delay para controlar a velocidade da animação
-    }
+    // Renderiza a ficha que está caindo
+    SDL_Rect posicao_anterior = { posicaoX, pos_antY, 132, 132 };
+    SDL_Rect posicao_inicial = { posicaoX, posicaoY, 132, 132 };
+    
 
-    /*
-        renderizarTabuleiro(renderer, tabuleiro, ficha_vermelha, ficha_amarela, quad1); // Renderiza o tabuleiro
-        SDL_RenderPresent(renderer); // Apresenta o renderizador
-    }
-    // Adiciona a ficha no tabuleiro (na posição final)
     if (seleciona_ficha == 1) {
-        SDL_Rect fichaRect = {posicaoX, posicaoY, 150, 150}; // Define a posição e o tamanho da ficha vermelha
-        SDL_RenderCopy(renderer, ficha_vermelha, NULL, &fichaRect); // Desenha a ficha vermelha
+           SDL_Rect posicao_anterior = { posicaoX, pos_antY, 132, 132};   // Ajuste a largura e altura conforme necessário
+            SDL_RenderCopy(renderer, ficha_transparente, NULL, &posicao_anterior);
+
+            SDL_Rect posicao_inicial = { posicaoX, posicaoY, 132, 132};   // Ajuste a largura e altura conforme necessário
+            SDL_RenderCopy(renderer, ficha_vermelha, NULL, &posicao_inicial);
     } else if (seleciona_ficha == 2) {
-        SDL_Rect fichaRect = {posicaoX, posicaoY, 150, 150}; // Define a posição e o tamanho da ficha amarela
-        SDL_RenderCopy(renderer, ficha_amarela, NULL, &fichaRect); // Desenha a ficha amarela
+           SDL_Rect posicao_anterior = { posicaoX, pos_antY, 132, 132};   // Ajuste a largura e altura conforme necessário
+            SDL_RenderCopy(renderer, ficha_transparente, NULL, &posicao_anterior);
+
+            SDL_Rect posicao_inicial = { posicaoX, posicaoY, 132, 132};   // Ajuste a largura e altura conforme necessário
+            SDL_RenderCopy(renderer, ficha_amarela, NULL, &posicao_inicial);
     }
-}*/
+    SDL_RenderCopy(renderer, tabuleiro, NULL, &quad1);
+    // Atualiza a tela com o novo conteúdo renderizado
+    SDL_RenderPresent(renderer);
+    SDL_Delay(10); // Delay para controlar a velocidade da animação
+}
 
     return 0; // Retorna 0 para indicar que a função foi bem-sucedida
 }
-
-////////////////////////// FUNÇÃO RENDERIZAR TABELA //////////////////////////////
-/*
-void renderizarTabuleiro(SDL_Renderer* renderer, SDL_Texture* tabuleiro, SDL_Texture* ficha_vermelha, SDL_Texture* ficha_amarela, SDL_Rect quad1) {
-    SDL_RenderClear(renderer); // Limpa a tela
-    SDL_RenderCopy(renderer, tabuleiro, NULL, &quad1); // Desenha o tabuleiro
-    // Desenha as fichas existentes no tabuleiro
-    for (int i = 0; i < 6; i++) {
-        for (int j = 0; j < 7; j++) {
-            if (tabuleiroAux[i][j] == 1) { // Se a posição contém ficha vermelha
-                SDL_Rect fichaRect = {j * 134 + 275, i * 134 + 150, 150, 150}; // Calcula a posição da ficha
-                SDL_RenderCopy(renderer, ficha_vermelha, NULL, &fichaRect); // Desenha a ficha vermelha
-            } else if (tabuleiroAux[i][j] == 2) { // Se a posição contém ficha amarela
-                SDL_Rect fichaRect = {j * 134 + 275, i * 134 + 150, 150, 150}; // Calcula a posição da ficha
-                SDL_RenderCopy(renderer, ficha_amarela, NULL, &fichaRect); // Desenha a ficha amarela
-            }
-        }
-    }
-    SDL_RenderPresent(renderer); // Atualiza a tela
-}
-*/
-////////////////////////// FUNÇÃO RENDERIZAR TABELA //////////////////////////////
-
 
 
 // Define a posição X com base na coluna selecionada
