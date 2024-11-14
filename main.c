@@ -5,7 +5,7 @@
 #include <stdlib.h>
 
 // Declaração das funções
-int jogada(SDL_Renderer* renderer, SDL_Texture* tabuleiro, SDL_Texture* ficha_vermelha, SDL_Texture* ficha_amarela,SDL_Texture* ficha_transparente, SDL_Rect quad1);
+void jogada(SDL_Renderer* renderer, SDL_Texture* tabuleiro, SDL_Texture* ficha_vermelha, SDL_Texture* ficha_amarela,SDL_Texture* ficha_transparente, SDL_Rect quad1);
 //void renderizarTabuleiro(SDL_Renderer* renderer, SDL_Texture* tabuleiro, SDL_Texture* ficha_vermelha, SDL_Texture* ficha_amarela, SDL_Rect quad1);
 void reiniciarTabuleiro(); 
 void iniciartabuleiroaux();
@@ -28,7 +28,8 @@ int escolhacol; // Coluna escolhida pelo jogador
 int numeroJogadas = 0; // Contador de jogadas
 float posicaoY = 0;
 float pos_antY = 0;
-
+//int matriz[7] = {0,0,0,0,0,0,0};
+int valor_maximo;
 
 ////////////////////////////////////////////////////// INICIO DO MAIN ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int main(int argc, char** argv) {
@@ -129,7 +130,7 @@ printf("Jogo terminado! Total de jogadas: %d\n", numeroJogadas);
 
 
 ////////////////////////// MÉTODO DA JOGADA ////////////////////////////////////////////
-int jogada(SDL_Renderer* renderer, SDL_Texture* tabuleiro, SDL_Texture* ficha_vermelha, SDL_Texture* ficha_amarela,SDL_Texture* ficha_transparente, SDL_Rect quad1) {
+void jogada(SDL_Renderer* renderer, SDL_Texture* tabuleiro, SDL_Texture* ficha_vermelha, SDL_Texture* ficha_amarela,SDL_Texture* ficha_transparente, SDL_Rect quad1) {
     SDL_Event event; // Armazena os eventos SDL
     int running = 1; // Variável para controle do loop
     //posicaoY = 50; // Posição inicial de descida
@@ -162,29 +163,86 @@ int jogada(SDL_Renderer* renderer, SDL_Texture* tabuleiro, SDL_Texture* ficha_ve
                 }
             }
         }
-/*if (seleciona_ficha != 0) {
-    if (tabuleiroAux[5][escolhacol] == 0) posicaoY < 600;
-    else if (tabuleiroAux[4][escolhacol] == 0 && tabuleiroAux[5][escolhacol] == 1) posicaoY < 490;
-    else if (tabuleiroAux[3][escolhacol] == 0 && tabuleiroAux[4][escolhacol] == 1) posicaoY < 380;
-    else if (tabuleiroAux[2][escolhacol] == 0 && tabuleiroAux[3][escolhacol] == 1) posicaoY < 270;
-    else if (tabuleiroAux[1][escolhacol] == 0 && tabuleiroAux[2][escolhacol] == 1) posicaoY < 160;
-    else if (tabuleiroAux[0][escolhacol] == 0 && tabuleiroAux[1][escolhacol] == 1) posicaoY < 50;
-        posicaoY += 3.5; // Incrementa a posição Y (fazendo a peça descer)
+
+/*
+ if (seleciona_ficha != 0) {
+            // Tentando encontrar a posição disponível no tabuleiro
+            if (tabuleiroAux[5][escolhacol] == 0) {
+                posicaoY > 600;
+                posicaoY += 3.5;
+            } else if (tabuleiroAux[4][escolhacol] == 0) {
+                posicaoY > 490;
+                posicaoY += 3.5;
+            } else if (tabuleiroAux[3][escolhacol] == 0) {
+                posicaoY > 380;
+                posicaoY += 3.5;
+            } else if (tabuleiroAux[2][escolhacol] == 0) {
+                posicaoY > 270;
+                posicaoY += 3.5;
+            } else if (tabuleiroAux[1][escolhacol] == 0) {
+                posicaoY > 160;
+                posicaoY += 3.5;
+            } else if (tabuleiroAux[0][escolhacol] == 0) {
+                posicaoY > 50;
+                posicaoY += 3.5;
             } else {
-                fichaCaiu = 1; // Marca que a ficha caiu
+                // Se todas as posições estiverem ocupadas, começa a descer
+                posicaoY += 3.5; // Faz a peça descer
             }
-        */
+        } else {
+            fichaCaiu = 1; // Marca que a ficha caiu
+        }  
+        */  
         
+      /*
         if (seleciona_ficha != 0) {
-            // Continua a animação da descida
-            if (posicaoY < 600) {// 600(5) ; 490(4) ; 380(3) ; 270(2) ; 160 (1) ; 50(0)
-                posicaoY += 3.5; // Incrementa a posição Y (fazendo a peça descer)
-                pos_antY = posicaoY;
-            } else {
-                fichaCaiu = 1; // Marca que a ficha caiu
-            }
-       
+    // Continua a animação da descida
+    if (getColunaDisponivel(escolhacol)) { // Verifica se a coluna está disponível para a ficha cair
+        if (posicaoY < 600) { // Verifica se a peça ainda pode cair (em relação à posição máxima)
+            posicaoY += 3.5; // Incrementa a posição Y, fazendo a peça descer
+            pos_antY = posicaoY; // Armazena a posição Y anterior para comparação futura
+        } else {
+            // Se a última posição (600) não está disponível, decrementa em 110 (a próxima posição)
+            posicaoY -= 110; // Decrementa para a última posição disponível
+            posicaoY += 3.5; // Incrementa a posição Y, fazendo a peça descer
+            pos_antY = posicaoY; // Atualiza a posição anterior
         }
+    }
+}
+*/
+if (seleciona_ficha != 0) {
+    // Define a posição máxima onde a peça deve parar com base na primeira linha disponível
+    ///int coldisp = getColunaDisponivel(escolhacol);
+    if (tabuleiroAux[5][escolhacol] == 0) valor_maximo = 600;
+    else if (tabuleiroAux[4][escolhacol] == 0) valor_maximo = 490;
+    else if (tabuleiroAux[3][escolhacol] == 0) valor_maximo = 380;
+    else if (tabuleiroAux[2][escolhacol] == 0) valor_maximo = 270;
+    else if (tabuleiroAux[1][escolhacol] == 0) valor_maximo = 160;
+    else if (tabuleiroAux[0][escolhacol] == 0) valor_maximo = 50;
+    else {
+        // Se a coluna estiver cheia, impede a peça de descer mais
+        fichaCaiu = 1;
+        //return;
+    }
+
+    // Move a peça para baixo até atingir `valor_maximo`
+    if (posicaoY < valor_maximo) {
+        pos_antY = posicaoY;
+        posicaoY += 3.5; // Incrementa a posição Y para simular a descida
+    } else {
+        fichaCaiu = 1; // A peça atingiu a posição máxima e "caiu"
+        
+        // Atualiza o tabuleiro com base na posição máxima alcançada
+        if (valor_maximo == 600) tabuleiroAux[5][escolhacol] = seleciona_ficha;
+        else if (valor_maximo == 490) tabuleiroAux[4][escolhacol] = seleciona_ficha;
+        else if (valor_maximo == 380) tabuleiroAux[3][escolhacol] = seleciona_ficha;
+        else if (valor_maximo == 270) tabuleiroAux[2][escolhacol] = seleciona_ficha;
+        else if (valor_maximo == 160) tabuleiroAux[1][escolhacol] = seleciona_ficha;
+        else if (valor_maximo == 50) tabuleiroAux[0][escolhacol] = seleciona_ficha;
+    }
+}
+
+
 
         //SDL_RenderClear(renderer); // Limpa a tela para novo desenho
         
@@ -220,7 +278,7 @@ int jogada(SDL_Renderer* renderer, SDL_Texture* tabuleiro, SDL_Texture* ficha_ve
     SDL_Delay(10); // Delay para controlar a velocidade da animação
 }
 
-    return 0; // Retorna 0 para indicar que a função foi bem-sucedida
+   // return 0; // Retorna 0 para indicar que a função foi bem-sucedida
 }
 
 
