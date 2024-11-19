@@ -7,6 +7,7 @@
 // Declaração das funções
 void jogada(SDL_Renderer* renderer, SDL_Texture* tabuleiro, SDL_Texture* ficha_vermelha, SDL_Texture* ficha_amarela,SDL_Texture* ficha_transparente, SDL_Rect quad1);
 //void renderizarTabuleiro(SDL_Renderer* renderer, SDL_Texture* tabuleiro, SDL_Texture* ficha_vermelha, SDL_Texture* ficha_amarela, SDL_Rect quad1);
+int jogadaMaquina(int tabuleiroAux[6][7]);
 void reiniciarTabuleiro(); 
 void iniciartabuleiroaux();
 void escolhaColuna(int coluna);
@@ -23,12 +24,10 @@ int jogadorAtual = 1;
 int tabuleiroAux[6][7] = {0}; // Tabuleiro auxiliar para registrar posições ocupadas
 int seleciona_ficha ; // Armazena qual ficha (vermelha ou amarela) está selecionada
 int posicaoX; // Posição X da peça selecionada
-//int posicaoY = 50; // Posição Y inicial da peça
 int escolhacol; // Coluna escolhida pelo jogador
 int numeroJogadas = 0; // Contador de jogadas
 float posicaoY = 0;
 float pos_antY = 0;
-//int matriz[7] = {0,0,0,0,0,0,0};
 int valor_maximo;
 
 ////////////////////////////////////////////////////// INICIO DO MAIN ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -36,12 +35,12 @@ int main(int argc, char** argv) {
     SDL_Init(SDL_INIT_EVERYTHING); // Inicializa a biblioteca SDL
     SDL_Window* window = SDL_CreateWindow(
         "Conecta 4", // Nome da janela
-        50, 15,    // Posição da janela
+        100, 100,    // Posição da janela
         1500, 1024,  // Tamanho da janela
         SDL_WINDOW_SHOWN // Define a janela como visível
     );
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 0); // Cria um renderizador
-    SDL_Texture* tabuleiro = IMG_LoadTexture(renderer, "jogo_tabuleiro.png"); // Carrega a textura do tabuleiro
+    SDL_Texture* tabuleiro = IMG_LoadTexture(renderer, "jogo_tabuleiro-fundo-removido.png"); // Carrega a textura do tabuleiro
     SDL_Texture* ficha_vermelha = IMG_LoadTexture(renderer, "ficha_vermelha.png"); // Carrega a textura da ficha vermelha
     SDL_Texture* ficha_amarela = IMG_LoadTexture(renderer, "ficha_amarela.png"); // Carrega a textura da ficha amarela
     SDL_Texture* ficha_transparente = IMG_LoadTexture(renderer, "ficha_transparente.png"); // Carrega a textura da ficha amarela
@@ -50,18 +49,20 @@ int main(int argc, char** argv) {
     SDL_Rect quad1 = { 200, 20, 1108, 750 }; // Define as dimensões do tabuleiro na tela
 
    // SDL_RenderClear(renderer); // Limpa a tela
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); // Define a cor de fundo, pode personalizar sabendo dos valores RGB
+   SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); // Define a cor de fundo, pode personalizar sabendo dos valores RGB
    SDL_RenderClear(renderer); // Limpa a tela
    
     printf("Bem Vindo ao Conecta 4 \n");
     printf("Escolha um Modo de Jogo:\n");
     printf("Digite:\n1 para jogador x jogador\n2 para jogador x máquina:\n "); // implementar essa parte ainda
+    int escolhaModo;
+    scanf("%d", &escolhaModo); 
 
+ /////////////////////////////MODO DE JOGO JOGADOR X JOGADOR/////////////////////////////////   
+if(escolhaModo == 1){
     iniciartabuleiroaux(); // inicia o tabuleiro aux com todos valores setados para 0
     PrintarTabelaux();
-
-
-    ///////////////////////////// JOGADA /////////////////////////////
+    //////////////////////////////////////////////// JOGADA ////////////////////////////////////////////////////
 while (numeroJogadas < 42) { // Permite até 42 jogadas (número máximo de peças no tabuleiro)
     printf("Escolha a coluna que você quer jogar (0 a 6):\n");
     scanf("%d", &escolhacol); // Usuário escolhe uma coluna
@@ -97,7 +98,6 @@ while (numeroJogadas < 42) { // Permite até 42 jogadas (número máximo de peç
                 printf("Jogador %d venceu com uma sequência Diagonal Descendente!\n", jogadorAtual);
                 break; // Encerra o loop se houver uma vitória    
             }
-
             // Troca de jogador
             jogadorAtual = (jogadorAtual == 1) ? 2 : 1;
         } else {
@@ -106,6 +106,93 @@ while (numeroJogadas < 42) { // Permite até 42 jogadas (número máximo de peç
     } else {
         printf("Coluna inválida. Escolha uma coluna entre 0 e 6.\n");
     }
+}
+
+printf("Jogo terminado! Total de jogadas: %d\n", numeroJogadas);
+    printf("DESEJA REINICIAR O JOGO? (1 para Sim, 0 para Não)\n");
+    int reiniciar;
+    scanf("%d", &reiniciar);
+    if (reiniciar == 1) {
+    reiniciarTabuleiro(); // Reinicia o tabuleiro se o jogador escolher
+    }
+
+//////////////////////////MODO DE JOGO X MÁQUINA//////////////////////////////////////////////////////////////
+
+} else {// Modo de jogo contra máquina...
+     escolhaModo == 2;
+     jogadorAtual = 1; // Jogador 1 (Humano)
+    iniciartabuleiroaux(); // inicia o tabuleiro aux com todos valores setados para 0
+    PrintarTabelaux();// printa a tabela pela primera vez com ela zerada ainda!
+    //////////////////////////////////////////////// JOGADA ////////////////////////////////////////////////////
+    
+while (numeroJogadas < 42) { // Permite até 42 jogadas (número máximo de peças no tabuleiro)
+printf("Escolha a coluna que você quer jogar (0 a 6):\n");
+    scanf("%d", &escolhacol); // Usuário escolhe uma coluna
+
+    if (escolhacol >= 0 && escolhacol < 7) {
+        escolhaColuna(escolhacol); // Define a posição X com base na coluna
+        jogada(renderer, tabuleiro, ficha_vermelha, ficha_amarela,ficha_transparente, quad1);
+
+        // Verifica se a jogada foi bem-sucedida
+        int linhaDisponivel = getColunaDisponivel(escolhacol);
+        if (linhaDisponivel != -1) {
+            tabuleiroAux[linhaDisponivel][escolhacol] = seleciona_ficha; // Adiciona a ficha na posição
+            numeroJogadas++; // Incrementa o contador de jogadas somente se a jogada for válida
+            PrintarTabelaux();
+
+            // Verifica a condição de vitória HORIZONTALMENTE!!!!!
+            if (VerificacaoHorizontal(tabuleiroAux)) {
+                printf("Jogador %d venceu com uma sequência horizontal!\n", jogadorAtual);
+                break; // Encerra o loop se houver uma vitória
+            }
+             // Verifica a condição de vitória VERTICALMENTE!!!!!
+            else if(VerificacaoVertical(tabuleiroAux)){
+                printf("Jogador %d venceu com uma sequência vertical!\n", jogadorAtual);
+                break; // Encerra o loop se houver uma vitória
+            }
+            // Verifica a condição de vitória Diagonal Ascendente!!!!!
+            else if(VerificacaoDiagonalAscendente(tabuleiroAux)){
+                printf("Jogador %d venceu com uma sequência Diagonal Ascendente!\n", jogadorAtual);
+                break; // Encerra o loop se houver uma vitória
+            } 
+            // Verifica a condição de vitória Diagonal descendente!!!!!
+            else if(VerificacaoDiagonalDescendente(tabuleiroAux)){
+                printf("Jogador %d venceu com uma sequência Diagonal Descendente!\n", jogadorAtual);
+                break; // Encerra o loop se houver uma vitória    
+            }
+
+            jogadorAtual = (jogadorAtual == 1) ? 2 : 1;
+                    } else {
+                        printf("Coluna cheia, tente novamente!\n");
+                    }
+                } else {
+                    printf("Coluna inválida. Escolha uma coluna entre 0 e 6.\n");
+                }
+                printf("VEZ DA MÁQUINA\n/");
+        int colunaMaquina = jogadaMaquina(tabuleiroAux);
+        int linhaDisponivel = getColunaDisponivel(colunaMaquina);
+
+        if (linhaDisponivel != -1) {
+                    tabuleiroAux[linhaDisponivel][colunaMaquina] = jogadorAtual;
+                    numeroJogadas++;
+                    PrintarTabelaux();
+
+                    if (VerificacaoHorizontal(tabuleiroAux)) {
+                        printf("A máquina venceu com uma sequência horizontal!\n");
+                        break;
+                    } else if (VerificacaoVertical(tabuleiroAux)) {
+                        printf("A máquina venceu com uma sequência vertical!\n");
+                        break;
+                    } else if (VerificacaoDiagonalAscendente(tabuleiroAux)) {
+                        printf("A máquina venceu com uma sequência diagonal ascendente!\n");
+                        break;
+                    } else if (VerificacaoDiagonalDescendente(tabuleiroAux)) {
+                        printf("A máquina venceu com uma sequência diagonal descendente!\n");
+                        break;
+                    }
+            jogadorAtual = (jogadorAtual == 1) ? 2 : 1;
+        }
+   }
 }
 
 printf("Jogo terminado! Total de jogadas: %d\n", numeroJogadas);
@@ -126,7 +213,33 @@ printf("Jogo terminado! Total de jogadas: %d\n", numeroJogadas);
     SDL_Quit(); // Finaliza a SDL
     return 0;
 }
+
 ////////////////////////////////////////////////////// FIM DO MAIN ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+int jogadaMaquina(int tabuleiroAux[6][7]) {
+    // Bloqueio Horizontal
+    for (int i = 0; i < 6; i++) { // Percorre todas as linhas
+        for (int j = 0; j < 4; j++) { // Garante que há espaço para uma sequência de 4
+            if (tabuleiroAux[i][j] == 1 &&
+                tabuleiroAux[i][j] == tabuleiroAux[i][j + 1] &&
+                tabuleiroAux[i][j] == tabuleiroAux[i][j + 2]) {
+                // Verifica se a posição seguinte está disponível
+                if (j + 3 < 7 && tabuleiroAux[i][j + 3] == 0) {
+                    return j + 3; // Retorna a coluna para o bloqueio
+                }
+            }
+        }
+    }
+
+    // Caso nenhuma jogada estratégica seja encontrada, escolhe uma coluna aleatória
+    while (1) {
+        int col = rand() % 7; // Coluna aleatória entre 0 e 6
+        if (getColunaDisponivel(col) != -1) {
+            return col; // Retorna uma coluna válida
+        }
+    }
+}
+
 
 
 ////////////////////////// MÉTODO DA JOGADA ////////////////////////////////////////////
@@ -164,52 +277,6 @@ void jogada(SDL_Renderer* renderer, SDL_Texture* tabuleiro, SDL_Texture* ficha_v
             }
         }
 
-/*
- if (seleciona_ficha != 0) {
-            // Tentando encontrar a posição disponível no tabuleiro
-            if (tabuleiroAux[5][escolhacol] == 0) {
-                posicaoY > 600;
-                posicaoY += 3.5;
-            } else if (tabuleiroAux[4][escolhacol] == 0) {
-                posicaoY > 490;
-                posicaoY += 3.5;
-            } else if (tabuleiroAux[3][escolhacol] == 0) {
-                posicaoY > 380;
-                posicaoY += 3.5;
-            } else if (tabuleiroAux[2][escolhacol] == 0) {
-                posicaoY > 270;
-                posicaoY += 3.5;
-            } else if (tabuleiroAux[1][escolhacol] == 0) {
-                posicaoY > 160;
-                posicaoY += 3.5;
-            } else if (tabuleiroAux[0][escolhacol] == 0) {
-                posicaoY > 50;
-                posicaoY += 3.5;
-            } else {
-                // Se todas as posições estiverem ocupadas, começa a descer
-                posicaoY += 3.5; // Faz a peça descer
-            }
-        } else {
-            fichaCaiu = 1; // Marca que a ficha caiu
-        }  
-        */  
-        
-      /*
-        if (seleciona_ficha != 0) {
-    // Continua a animação da descida
-    if (getColunaDisponivel(escolhacol)) { // Verifica se a coluna está disponível para a ficha cair
-        if (posicaoY < 600) { // Verifica se a peça ainda pode cair (em relação à posição máxima)
-            posicaoY += 3.5; // Incrementa a posição Y, fazendo a peça descer
-            pos_antY = posicaoY; // Armazena a posição Y anterior para comparação futura
-        } else {
-            // Se a última posição (600) não está disponível, decrementa em 110 (a próxima posição)
-            posicaoY -= 110; // Decrementa para a última posição disponível
-            posicaoY += 3.5; // Incrementa a posição Y, fazendo a peça descer
-            pos_antY = posicaoY; // Atualiza a posição anterior
-        }
-    }
-}
-*/
 if (seleciona_ficha != 0) {
     // Define a posição máxima onde a peça deve parar com base na primeira linha disponível
     ///int coldisp = getColunaDisponivel(escolhacol);
@@ -228,7 +295,7 @@ if (seleciona_ficha != 0) {
     // Move a peça para baixo até atingir `valor_maximo`
     if (posicaoY < valor_maximo) {
         pos_antY = posicaoY;
-        posicaoY += 3.5; // Incrementa a posição Y para simular a descida
+        posicaoY += 5; // Incrementa a posição Y para simular a descida, deixar 3.5 quando programa estiver
     } else {
         fichaCaiu = 1; // A peça atingiu a posição máxima e "caiu"
         
@@ -298,11 +365,13 @@ void escolhaColuna(int coluna) {
 
 // Verifica a coluna disponível na linha especificada
 int getColunaDisponivel(int coluna) { 
-    for (int linha = 5; linha >= 0; linha--) { // Começa da última linha (parte inferior)
-        if (tabuleiroAux[linha][coluna] == 0) { // Verifica se a posição está vazia
+    for (int linha = 6; linha >= 0; linha--) { // Começa da última linha (parte inferior)
+        printf("Linha %d:\n ", linha);
+        if (tabuleiroAux[linha][coluna] != 1 ||tabuleiroAux[linha][coluna] !=2 ) { // Verifica se a posição está vazia
             return linha; // Retorna a primeira linha disponível
         }
-    } return -1; // Retorna -1 se a coluna estiver cheia
+    }
+     return -1; // Retorna -1 se a coluna estiver cheia
 }
 
 // Reinicia o tabuleiro
@@ -339,7 +408,7 @@ void PrintarTabelaux() {
 // Verifica se há quatro peças consecutivas na horizontal para um jogador
 bool VerificacaoHorizontal(int tabuleiroAux[6][7]) {
     for (int i = 0; i < 6; i++) { // Percorre cada linha
-        for (int j = 0; j < 4; j++) { // Até a coluna 4 para evitar overflow
+        for (int j = 0; j < 7; j++) { // Até a coluna 4 para evitar overflow
             if (tabuleiroAux[i][j] != 0 && 
                 tabuleiroAux[i][j] == tabuleiroAux[i][j + 1] &&
                 tabuleiroAux[i][j] == tabuleiroAux[i][j + 2] &&
@@ -354,7 +423,7 @@ bool VerificacaoHorizontal(int tabuleiroAux[6][7]) {
 
 bool VerificacaoVertical(int tabuleiroAux[6][7]){
     for (int i = 0; i < 6; i++) { // Percorre cada linha
-        for (int j = 0; j < 4; j++) { // Até a coluna 4 para evitar overflow
+        for (int j = 0; j < 7; j++) { // Até a coluna 4 para evitar overflow
      if (tabuleiroAux[i][j] != 0 && 
          tabuleiroAux[i][j] == tabuleiroAux[i-1][j] &&
          tabuleiroAux[i][j] == tabuleiroAux[i-2][j] &&
@@ -368,8 +437,8 @@ bool VerificacaoVertical(int tabuleiroAux[6][7]){
 };
 
 bool VerificacaoDiagonalAscendente(int tabuleiroAux[6][7]) {
-    for (int i = 3; i < 6; i++) { // Inicia a partir da linha 3 para permitir a diagonal
-        for (int j = 0; j < 4; j++) { // Limita a coluna para permitir 4 peças em sequência
+    for (int i = 0; i < 6; i++) { // Inicia a partir da linha 3 para permitir a diagonal
+        for (int j = 0; j < 7; j++) { // Limita a coluna para permitir 4 peças em sequência
             if (tabuleiroAux[i][j] != 0 &&
                 tabuleiroAux[i][j] == tabuleiroAux[i - 1][j + 1] &&
                 tabuleiroAux[i][j] == tabuleiroAux[i - 2][j + 2] &&
@@ -383,8 +452,8 @@ bool VerificacaoDiagonalAscendente(int tabuleiroAux[6][7]) {
 
 
 bool VerificacaoDiagonalDescendente(int tabuleiroAux[6][7]) {
-     for (int i = 3; i < 6; i++) { // Inicia a partir da linha 3 para permitir a diagonal
-        for (int j = 0; j < 4; j++) { // Limita a coluna para permitir 4 peças em sequência
+     for (int i = 0; i < 6; i++) { // Inicia a partir da linha 3 para permitir a diagonal
+        for (int j = 0; j < 7; j++) { // Limita a coluna para permitir 4 peças em sequência
             if (tabuleiroAux[i][j] != 0 &&
                 tabuleiroAux[i][j] == tabuleiroAux[i + 1][j - 1] &&
                 tabuleiroAux[i][j] == tabuleiroAux[i + 2][j - 2] &&
@@ -395,5 +464,3 @@ bool VerificacaoDiagonalDescendente(int tabuleiroAux[6][7]) {
     }
     return false; 
 };
-
-
