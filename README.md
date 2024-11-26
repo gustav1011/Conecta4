@@ -10,8 +10,10 @@ gcc main.c -I SDL2\i686-w64-mingw32\include -L SDL2\i686-w64-mingw32\lib -lmingw
 gcc -pg main.c -I SDL2\i686-w64-mingw32\include -L SDL2\i686-w64-mingw32\lib -lmingw32 -lSDL2main -lSDL2 -lSDL2_image
 
 -Após a compilação, o programa deve ser executado para que ele gere um arquivo chamado gmon.out:(PROGRAMA VAI RODAR NO TERMINAL POR ESSE COMANDO)
+
 ./main
 
 -Após gerar o executável .exe e executar o programa para criar o arquivo gmon.out, você pode usar o gprof para produzir um relatório detalhado de desempenho:
+
 gprof main.exe gmon.out > perfil.txt
 
