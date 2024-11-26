@@ -526,7 +526,7 @@ bool VerificacaoVertical(int tabuleiroAux[6][7]) {
 
 bool VerificacaoDiagonalAscendente(int tabuleiroAux[6][7]) {
     for (int i = 0; i < 6; i++) { // Começa na linha 3 para permitir a diagonal ascendente
-        for (int j = 0; j <= 7 - 3; j++) { // Limita a coluna para evitar overflow
+        for (int j = 0; j <= 7 - 4; j++) { // Limita a coluna para evitar overflow
             if (tabuleiroAux[i][j] != 0 &&
                 tabuleiroAux[i][j] == tabuleiroAux[i - 1][j + 1] &&
                 tabuleiroAux[i][j] == tabuleiroAux[i - 2][j + 2] &&
@@ -539,8 +539,8 @@ bool VerificacaoDiagonalAscendente(int tabuleiroAux[6][7]) {
 }
 
 bool VerificacaoDiagonalDescendente(int tabuleiroAux[6][7]) {
-    for (int i = 0; i <= 6 - 3; i++) { // Limita a linha para permitir a diagonal descendente
-        for (int j = 0; j <= 7 - 3; j++) { // Limita a coluna para evitar overflow
+    for (int i = 0; i <= 6 - 4; i++) { // Limita a linha para permitir a diagonal descendente
+        for (int j = 0; j <= 7 - 4; j++) { // Limita a coluna para evitar overflow
             if (tabuleiroAux[i][j] != 0 &&
                 tabuleiroAux[i][j] == tabuleiroAux[i + 1][j + 1] &&
                 tabuleiroAux[i][j] == tabuleiroAux[i + 2][j + 2] &&
