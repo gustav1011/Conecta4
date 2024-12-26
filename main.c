@@ -127,8 +127,7 @@ printf("Jogo terminado! Total de jogadas: %d\n", numeroJogadas);
 
 //////////////////////////MODO DE JOGO X MÁQUINA//////////////////////////////////////////////////////////////
 
-} else {// Modo de jogo contra máquina...
-     escolhaModo == 2;
+} else if(escolhaModo == 2) {// Modo de jogo contra máquina...
      jogadorAtual = 1; // Jogador 1 (Humano)
     iniciartabuleiroaux(); // inicia o tabuleiro aux com todos valores setados para 0
     PrintarTabelaux();// printa a tabela pela primera vez com ela zerada ainda!
